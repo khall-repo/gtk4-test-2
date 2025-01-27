@@ -12,7 +12,7 @@ INC_RESOURCE_DIR   := src/gui/resource
 BIN		:= bin
 SRC		:= $(wildcard $(SRC_RESOURCE_DIR)/*.c) \
 			   $(wildcard $(SRC_GUI_DIR)/*.c) \
-        $(wildcard $(SRC_MAIN_DIR)/*.c)
+         $(wildcard $(SRC_MAIN_DIR)/*.c)
 INCLUDE := $(INC_RESOURCE_DIR) \
 			     $(INC_GUI_DIR) \
 			     $(INC_MAIN_DIR)

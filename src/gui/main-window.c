@@ -1,8 +1,11 @@
+
 #include <gtk/gtk.h>
 #include "config.h"
-#include "gui.h"
+#include "main-window.h"
 
-typedef struct _NainWindow
+GtkApplication *main_app;
+
+typedef struct _MainWindow
 {
   GtkApplicationWindow parent_instance;
 
@@ -62,7 +65,9 @@ typedef struct _MainWindowClass
 G_DEFINE_TYPE(MainWindow, main_window, GTK_TYPE_APPLICATION_WINDOW)
 // moved this down here to make it clearer that below line is related to the
 // line above.
-#define MY_APP_WINDOW_TYPE (main_window_get_type())
+#define MAIN_WINDOW_TYPE (main_window_get_type())
+
+#define MAIN_WINDOW(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), MAIN_WINDOW_TYPE, MainWindow))
 
 static void main_window_class_init(MainWindowClass *class)
 {
@@ -121,6 +126,9 @@ static void activate_cb(GtkApplication *app, gpointer user_data)
 {
   MainWindow *window = g_object_new(main_window_get_type(), "application", app, NULL);
 
+  // Store the MainWindow instance in the GtkApplicationWindow
+  g_object_set_data(G_OBJECT(window), "main-window-instance", window);
+
   // Connect the button0 signal its the callback function
   g_signal_connect(window->button0, "clicked", G_CALLBACK(button0_clicked_cb), window);
   gtk_window_present(GTK_WINDOW(window));
@@ -128,7 +136,8 @@ static void activate_cb(GtkApplication *app, gpointer user_data)
 
 int run_gui_application(int argc, char *argv[])
 {
-  GtkApplication *app;
+  //GtkApplication *app; // Made this global to this file.. not sure if
+                         // that's the greatest of ideas.
   int status;
 
   // Disable accessibility
@@ -138,10 +147,47 @@ int run_gui_application(int argc, char *argv[])
   // G_APPLICATION_FLAGS_NONE is deprecated, and that we should use
   // G_APPLICATION_DEFAULT_FLAGS. But on Linux mint AMD64, that doesn't even
   // exist.
-  app = gtk_application_new("com.example.myapp", G_APPLICATION_FLAGS_NONE);
-  g_signal_connect(app, "activate", G_CALLBACK(activate_cb), NULL);
-  status = g_application_run(G_APPLICATION(app), argc, argv);
-  g_object_unref(app);
+  main_app = gtk_application_new("com.example.myapp", G_APPLICATION_FLAGS_NONE);
+  g_signal_connect(main_app, "activate", G_CALLBACK(activate_cb), NULL);
+  status = g_application_run(G_APPLICATION(main_app), argc, argv);
 
+  g_object_unref(main_app);
   return status;
+}
+
+MainWindow *get_main_window_instance(void)
+{
+  GtkApplicationWindow *window = GTK_APPLICATION_WINDOW(gtk_application_get_active_window(main_app));
+  return MAIN_WINDOW(g_object_get_data(G_OBJECT(window), "main-window-instance"));
+}
+
+// Function to retrieve the text from data_display_label0
+const char *_get_data_display_label0_text(MainWindow *window)
+{
+  return gtk_label_get_text(GTK_LABEL(window->data_display_label0));
+}
+
+// Example usage of get_data_display_label0_text
+const char *get_data_display_label0_text(void)
+{
+  MainWindow *window = get_main_window_instance();
+  if (window) {
+    const char *text = _get_data_display_label0_text(window);
+    return text;
+  } else {
+    g_print("Failed to retrieve MainWindow instance\n");
+  }
+  return "\0";
+}
+
+int set_data_display_label0_text(const char *text)
+{
+  MainWindow *window = get_main_window_instance();
+  if (window) {
+    gtk_label_set_text(GTK_LABEL(window->data_display_label0), text);
+    return 0;
+  } else {
+    g_print("Failed to retrieve MainWindow instance\n");
+  }
+  return -1;
 }

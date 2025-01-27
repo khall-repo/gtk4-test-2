@@ -13,17 +13,18 @@
  *   the ability to call some functions behind the UI at a regular interval.
  *    done
  * - Update GtkLabel text from the main code.
- *    sort of done? Well.. it does work, but I wonder if there's a better way.
- *    Perhaps I should try to find a way to get/set the label text with the
- *    GtkWidget references in the MainWindow struct.
+ *    done through the imain-window interface.
  * - Interface between main and UI code
- *    Todo. Currently just talking to the UI code directly.
+ *    Almost there.. problem with interface/ui setting text after window
+ *    has closed. Need to detect window close and stop trying to update
+ *    the UI in the GtkApplication idle loop function I added.
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
 #include "config.h"
+#include "imain-window.h"
 #include "main-window.h"
 
 timer_t timebase_timerid;
@@ -36,14 +37,12 @@ void timebase_handler(int signum, siginfo_t *info, void *context)
 
   // try to print a data label from the main window.
   // 5 seconds ensures window won't be "null" when we try to use it.
-  if (5 == count) {
-    printf("Data label 0: %s\n", get_data_display_label0_text());
+  if (5 == count) { // try to set the data label
+    set_data_display_label0("Farts");
+    printf("\tData label 0 was set\n");
   }
-  else if (6 == count) { // try to set the data label
-    set_data_display_label0_text("Farts");
-  }
-  else if (7 == count) { // try to print the data label again
-    printf("New Data label 0: %s\n", get_data_display_label0_text());
+  else if (6 == count) { // try to print the data label again
+    printf("\tNew Data label 0: %s\n", get_data_display_label0());
   }
   else if (30 == count) { // Stop timer after 10 expirations to test timer_delete
     if (timer_delete(timebase_timerid) == -1) {

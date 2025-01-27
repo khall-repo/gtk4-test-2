@@ -1,9 +1,10 @@
 
 #include <gtk/gtk.h>
 #include "config.h"
+#include "imain-window.h"
 #include "main-window.h"
 
-GtkApplication *main_app;
+extern IMainWindow imain_window;
 
 typedef struct _MainWindow
 {
@@ -117,6 +118,14 @@ static void main_window_init(MainWindow *self)
   gtk_widget_init_template(GTK_WIDGET(self));
 }
 
+static gboolean update_main_window(MainWindow *self)
+{
+  // This is where you would update the labels and buttons in the main window
+  // based on the data in the IMainWindow struct.
+  gtk_label_set_text(GTK_LABEL(self->col_header_label0), imain_window.col_header_label0);
+  gtk_label_set_text(GTK_LABEL(self->col_header_label1), imain_window.col_header_label1);
+}
+
 static void button0_clicked_cb(GtkButton *button, MainWindow *self)
 {
   gtk_label_set_text(GTK_LABEL(self->data_display_label0), "Button0 was clicked!");
@@ -132,21 +141,22 @@ static void activate_cb(GtkApplication *app, gpointer user_data)
   // Connect the button0 signal its the callback function
   g_signal_connect(window->button0, "clicked", G_CALLBACK(button0_clicked_cb), window);
   gtk_window_present(GTK_WINDOW(window));
+
+  // Add idle function to the main loop
+  g_idle_add((GSourceFunc)update_main_window, window);
 }
 
 int run_gui_application(int argc, char *argv[])
 {
-  //GtkApplication *app; // Made this global to this file.. not sure if
-                         // that's the greatest of ideas.
+  GtkApplication *main_app;
   int status;
 
   // Disable accessibility
   g_setenv("GTK_A11Y", "none", TRUE);
 
-  // So this is weird.. on the RPi OS, it complains that
-  // G_APPLICATION_FLAGS_NONE is deprecated, and that we should use
-  // G_APPLICATION_DEFAULT_FLAGS. But on Linux mint AMD64, that doesn't even
-  // exist.
+  // On the RPi OS, it complains that G_APPLICATION_FLAGS_NONE is deprecated,
+  // and that we should use instead use G_APPLICATION_DEFAULT_FLAGS.
+  // But on Linux mint AMD64, that doesn't even exist.
   main_app = gtk_application_new("com.example.myapp", G_APPLICATION_FLAGS_NONE);
   g_signal_connect(main_app, "activate", G_CALLBACK(activate_cb), NULL);
   status = g_application_run(G_APPLICATION(main_app), argc, argv);
@@ -155,7 +165,7 @@ int run_gui_application(int argc, char *argv[])
   return status;
 }
 
-MainWindow *get_main_window_instance(void)
+/*MainWindow *_get_main_window_instance(void)
 {
   GtkApplicationWindow *window = GTK_APPLICATION_WINDOW(gtk_application_get_active_window(main_app));
   return MAIN_WINDOW(g_object_get_data(G_OBJECT(window), "main-window-instance"));
@@ -170,7 +180,7 @@ const char *_get_data_display_label0_text(MainWindow *window)
 // Example usage of get_data_display_label0_text
 const char *get_data_display_label0_text(void)
 {
-  MainWindow *window = get_main_window_instance();
+  MainWindow *window = _get_main_window_instance();
   if (window) {
     const char *text = _get_data_display_label0_text(window);
     return text;
@@ -182,7 +192,7 @@ const char *get_data_display_label0_text(void)
 
 int set_data_display_label0_text(const char *text)
 {
-  MainWindow *window = get_main_window_instance();
+  MainWindow *window = _get_main_window_instance();
   if (window) {
     gtk_label_set_text(GTK_LABEL(window->data_display_label0), text);
     return 0;
@@ -191,3 +201,10 @@ int set_data_display_label0_text(const char *text)
   }
   return -1;
 }
+
+// Function to retrieve the text from a GtkLabel
+const char *_get_main_window_gtklabel_text(GtkWidget *label)
+{
+  return gtk_label_get_text(GTK_LABEL(label));
+}
+*/

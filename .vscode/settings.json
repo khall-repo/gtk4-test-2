@@ -2,6 +2,7 @@
   "files.associations": {
     "config.h": "c",
     "time.h": "c",
-    "main-window.h": "c"
+    "main-window.h": "c",
+    "imain-window.h": "c"
   }
 }

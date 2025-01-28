@@ -17,12 +17,11 @@ the ability to call some functions behind the UI at a regular interval.
 
   done
 
+- Interface between main and UI code
+
+  done
+
  - Update GtkLabel text from the main code.
 
-  done through the imain-window interface.
+  done
 
- - Interface between main and UI code
-
-   Almost there.. problem with interface/ui setting text after window
-   has closed. Need to detect window close and stop trying to update
-   the UI in the GtkApplication idle loop function I added.

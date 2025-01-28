@@ -12,12 +12,10 @@
  *   anything to do with the UI, but for me it would be desireable to have
  *   the ability to call some functions behind the UI at a regular interval.
  *    done
+* - Interface between main and UI code
+ *    done
  * - Update GtkLabel text from the main code.
- *    done through the imain-window interface.
- * - Interface between main and UI code
- *    Almost there.. problem with interface/ui setting text after window
- *    has closed. Need to detect window close and stop trying to update
- *    the UI in the GtkApplication idle loop function I added.
+ *    done
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +27,30 @@
 
 timer_t timebase_timerid;
 
+// The main window text is now initialied through the imain-window interface.
+// The text in the .UI file is now just a placeholder, it can be removed.
+// We no longer have to worry about waiting for the window to be created
+// before we start writing to the labels.
+void init_main_window_data_disp_text(void)
+{
+  set_data_display_label0("Data Display 0");
+  set_data_display_label1("Data Display 1");
+  set_data_display_label2("Data Display 2");
+  set_data_display_label3("Data Display 3");
+  set_data_display_label4("Data Display 4");
+  set_data_display_label5("Data Display 5");
+  set_data_display_label6("Data Display 6");
+  set_data_display_label7("Data Display 7");
+  set_data_display_label8("Data Display 8");
+  set_data_display_label9("Data Display 9");
+  set_data_display_label10("Data Display 10");
+  set_data_display_label11("Data Display 11");
+  set_data_display_label12("Data Display 12");
+  set_data_display_label13("Data Display 13");
+  set_data_display_label14("Data Display 14");
+  set_data_display_label15("Data Display 15");
+}
+
 // Signal handler for the timebase timer
 void timebase_handler(int signum, siginfo_t *info, void *context)
 {
@@ -36,7 +58,7 @@ void timebase_handler(int signum, siginfo_t *info, void *context)
   printf("Timer expired %d times\n", ++count);
 
   // try to print a data label from the main window.
-  // 5 seconds ensures window won't be "null" when we try to use it.
+  // Do it at 5-6 seconds so we can watch it change. 
   if (5 == count) { // try to set the data label
     set_data_display_label0("Farts");
     printf("\tData label 0 was set\n");
@@ -91,6 +113,8 @@ int timebase_start(void)
 
 int main(int argc, char *argv[])
 {
+  init_main_window_data_disp_text();
+
   if(0 != timebase_start()) {
     return -1;
   }

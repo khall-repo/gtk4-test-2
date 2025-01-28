@@ -6,6 +6,9 @@
 
 extern IMainWindow imain_window;
 
+// This is the handle for the idle function that updates the main window 
+static guint window_update_fn_source_id = 0;
+
 typedef struct _MainWindow
 {
   GtkApplicationWindow parent_instance;
@@ -118,12 +121,47 @@ static void main_window_init(MainWindow *self)
   gtk_widget_init_template(GTK_WIDGET(self));
 }
 
+static void main_window_destroy_cb(GtkWidget *widget, gpointer data)
+{
+  g_print("MainWindow has been closed.\n");
+  // Remove the idle function from the main loop
+  if (window_update_fn_source_id != 0) {
+    g_source_remove(window_update_fn_source_id);
+    window_update_fn_source_id = 0;
+  }
+}
+
+// This is where you would update data display labels in the main window
+// based on the data in the IMainWindow struct.
 static gboolean update_main_window(MainWindow *self)
 {
-  // This is where you would update the labels and buttons in the main window
-  // based on the data in the IMainWindow struct.
-  gtk_label_set_text(GTK_LABEL(self->col_header_label0), imain_window.col_header_label0);
-  gtk_label_set_text(GTK_LABEL(self->col_header_label1), imain_window.col_header_label1);
+  // I could update the column headers and button text, but the window elements
+  // intended to be static should be set in the .ui file, not here. No sense in
+  // wasting resources to update things that never change on every frame.
+  //gtk_label_set_text(GTK_LABEL(self->col_header_label0), imain_window.col_header_label0);
+  //gtk_label_set_text(GTK_LABEL(self->col_header_label1), imain_window.col_header_label1);
+  
+  gtk_label_set_text(GTK_LABEL(self->data_display_label0), imain_window.data_display_label0);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label1), imain_window.data_display_label1);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label2), imain_window.data_display_label2);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label3), imain_window.data_display_label3);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label4), imain_window.data_display_label4);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label5), imain_window.data_display_label5);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label6), imain_window.data_display_label6);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label7), imain_window.data_display_label7);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label8), imain_window.data_display_label8);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label9), imain_window.data_display_label9);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label10), imain_window.data_display_label10);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label11), imain_window.data_display_label11);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label12), imain_window.data_display_label12);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label13), imain_window.data_display_label13);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label14), imain_window.data_display_label14);
+  gtk_label_set_text(GTK_LABEL(self->data_display_label15), imain_window.data_display_label15);
+
+  // Return TRUE to keep the idle function running
+  return TRUE;
+  // Or return FALSE to stop the idle function
+  //return FALSE;
 }
 
 static void button0_clicked_cb(GtkButton *button, MainWindow *self)
@@ -140,10 +178,16 @@ static void activate_cb(GtkApplication *app, gpointer user_data)
 
   // Connect the button0 signal its the callback function
   g_signal_connect(window->button0, "clicked", G_CALLBACK(button0_clicked_cb), window);
+  // Connect the destroy signal to detect when the window is closed
+  g_signal_connect(window, "destroy", G_CALLBACK(main_window_destroy_cb), NULL);
+
   gtk_window_present(GTK_WINDOW(window));
 
   // Add idle function to the main loop
-  g_idle_add((GSourceFunc)update_main_window, window);
+  window_update_fn_source_id = g_idle_add((GSourceFunc)update_main_window, window);
+  // Alternatively, you could use g_timeout_add() to update the window at a
+  // regular interval. The function would be called every 1000 milliseconds.
+  //window_update_fn_source_id = g_timeout_add(1000, (GSourceFunc)update_main_window, window);
 }
 
 int run_gui_application(int argc, char *argv[])
@@ -151,7 +195,7 @@ int run_gui_application(int argc, char *argv[])
   GtkApplication *main_app;
   int status;
 
-  // Disable accessibility
+  // Disable accessibility so we don't get a bunch of warnings about it.
   g_setenv("GTK_A11Y", "none", TRUE);
 
   // On the RPi OS, it complains that G_APPLICATION_FLAGS_NONE is deprecated,
@@ -165,6 +209,9 @@ int run_gui_application(int argc, char *argv[])
   return status;
 }
 
+
+// Here is some scrap code.. It works so I'm leaving it here for my own
+// reference.
 /*MainWindow *_get_main_window_instance(void)
 {
   GtkApplicationWindow *window = GTK_APPLICATION_WINDOW(gtk_application_get_active_window(main_app));
